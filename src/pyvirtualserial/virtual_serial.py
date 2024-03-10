@@ -1,57 +1,76 @@
-import subprocess
-import sys
-import os
-import time
-from . import SETUP_PATH
+from loguru import logger
+from pyvirtualserial import OS_NAME
 
+__author__ = "byrondelgithub"
+__copyright__ = "byrondelgithub"
+__license__ = "MIT"
 
-class cd:
-    """Context manager for cd operations"""
-
-    def __init__(self, new_path) -> None:
-        self.new_path = os.path.expanduser(new_path)
-
-    def __enter__(self):
-        self.saved_path = os.getcwd()
-        os.chdir(self.new_path)
-
-    def __exit__(self, *args):
-        os.chdir(self.saved_path)
-
-
-with cd(SETUP_PATH.parent):
-    subprocess.Popen(
-        [
-            SETUP_PATH,
-            "install",
-            "PortName=COM#,EmuBr=yes",
-            "PortName=COM#,EmuBr=yes",
-        ]
+if OS_NAME == "nt":
+    from pyvirtualserial.bases.window_virtual_serial import (
+        WindowsBaseVirtualSerial as BaseVirtualSerial,
     )
-    time.sleep(5)
-    subprocess.run([SETUP_PATH, "remove", "0"])
+else:
+    from pyvirtualserial.bases.linux_virtual_serial import (
+        LinuxBaseVirtualSerial as BaseVirtualSerial,
+    )
 
 
-class VirtualSerial:
+class VirtualSerial(BaseVirtualSerial):
+    """
+    Virtual serial compatible for both windows and linux.
+
+    A virtual serial is uses a master serial to communicate with a slave serial,
+    everything sent to the master will be received in the slave and viceversa.
+
+    You can communicate with the slave serial using ``write``, ``read``, ``readline``, ``readline_CR`` and ``readlines``.
+
+    Please check ``WindowsBaseVirtualSerial`` and ``LinuxBaseVirtualSerial`` for more information
+    on how It works.
+    """
+
     def __init__(
-        self,
-        threaded: bool = False,
-        start_cmd: str | None = None,
-        stop_cmd: str | None = None,
+        self, port: int = 10000, baudrate: int = 9600, timeout: int = 5
     ) -> None:
-        self.__is_threaded = threaded
-        self.__start_cmd = start_cmd
-        self.__stop_cmd = stop_cmd
+        """
+        At the moment you initialize this class the pair of serial ports will be created.
 
-        self._serial_name: str = None
+        Args:
+            port (int, optional): Number of the serial port COM{port} (Only for windows). Defaults to 10000.
+            baudrate (int, optional): Baudrate of the communication (Only for windows). Defaults to 9600.
+            timeout (int, optional): Time before the Serial sends a ``TimeoutException`` when reading (Only for windows). Defaults to 5.
+        """
+        super().__init__(port, baudrate, timeout)
 
-    def create_serial(self):
-        pass
+    def write(self, bytes: bytes):
+        logger.debug(f"Writing {bytes}")
+        self._writer.write(bytes)
+        self._writer.flush()
 
-    @property
-    def is_threaded(self):
-        return self.__is_threaded
+    def read(self, bytes: int = 1) -> bytes:
+        b = self._reader.read(bytes)
+        logger.debug(f"Reading {b}")
+        return b
 
-    @property
-    def serial_name(self):
-        return self.__is_threaded
+    def readline(self) -> bytes:
+        line = self._reader.readline()
+        logger.debug(f"Reading line {line}")
+        return line
+
+    def readline_CR(self) -> list[bytes]:
+        eol = b"\r"
+        leneol = len(eol)
+        line = b""
+        while True:
+            c = self._reader.read(1)
+            if c:
+                line += c
+                if line[-leneol:] == eol:
+                    break
+            else:
+                break
+        return bytes(line)
+
+    def readlines(self) -> list[bytes]:
+        lines = self._reader.readlines()
+        logger.debug(f"Reading lines {lines}")
+        return lines

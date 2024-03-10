@@ -23,22 +23,35 @@
         :alt: Twitter
         :target: https://twitter.com/pyvirtualserial
 
-.. image:: https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold
-    :alt: Project generated with PyScaffold
-    :target: https://pyscaffold.org/
-
-|
-
 ===============
 pyvirtualserial
 ===============
 
 
-    Library to make creation, managing, visualization and communication with virtual serial port an easier task.
+    Library to create virtual serial ports on Windows and Linux.
 
+On Windows Com0Com and admin permissions are needed. Using the library will ask you for elevation and install Com0Com for you if needed.
+On Linux It uses the pty native library, simple as always.
 
-A longer description of your project goes here...
+Virtual serial creates a pair of virtual serials, anything sent to the master will be received in the slave and viceversa.
 
+************
+Installation
+************
+``pip install PyVirtualSerial``
+
+*****
+Usage
+*****
+Using Virtual serial is pretty simple, here is a simple script to create an echo Serial:
+::
+
+    from pyvirtualserial import VirtualSerial
+
+    virtual_serial = VirtualSerial(timeout=60)
+    while True:
+        b = virtual_serial.read(1)
+        virtual_serial.write(b)
 
 .. _pyscaffold-notes:
 

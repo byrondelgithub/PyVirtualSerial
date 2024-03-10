@@ -1,1 +1,0 @@
-from pyvirtualserial import virtual_serial
