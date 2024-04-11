@@ -60,7 +60,9 @@ class LinuxBaseVirtualSerial:
     def read_until(self, expected) -> bytes:
         b = b""
         s_time = time.time()
-        while b[-len(expected):] != expected and time.time() - s_time < self._timeout:
+        while b[-len(expected):] != expected :
+            if self._timeout is not None and time.time() - s_time >= self._timeout:
+                break
             b += self.read(1)
         logger.debug(f"Reading {b}")
         return b
