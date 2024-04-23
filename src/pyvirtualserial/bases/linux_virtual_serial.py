@@ -39,12 +39,12 @@ class LinuxBaseVirtualSerial:
         self.__create_serial()
 
     def __create_serial(self):
-        master, slave = pty.openpty()  # Create the pair
+        master, slave = pty.openpty()
         tty.setraw(master, termios.TCSANOW)
         self._master = master
         self._slave = slave
-        self._writer = os.fdopen(self._master, "wb")  # Create the writer for the master
-        self._reader = os.fdopen(self._master, "rb")  # Create the reader for the master
+        self._writer = os.fdopen(self._master, "wb")
+        self._reader = os.fdopen(self._master, "rb")
         logger.debug(f"Creating virtual port at {self.get_slave_name()}")
 
     def read(self, bytes: int = 1) -> bytes:
