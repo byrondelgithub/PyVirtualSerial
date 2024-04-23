@@ -5,6 +5,7 @@ References:
     - https://docs.python.org/es/3/library/tty.html
     - https://docs.python.org/es/3.10/library/pty.html
 """
+
 import os
 import time
 from select import select
@@ -27,7 +28,7 @@ class LinuxBaseVirtualSerial:
     will be also sent to the slave and viceversa.
     """
 
-    def __init__(self, timeout = 5, *args, **kwargs) -> None:
+    def __init__(self, timeout=5, *args, **kwargs) -> None:
         """
         Linux virtual serials dont need baudrate, ports or timeout.
         To access the slave port name please use the function :func:`get_slave_name`
@@ -60,13 +61,13 @@ class LinuxBaseVirtualSerial:
     def read_until(self, expected) -> bytes:
         b = b""
         s_time = time.time()
-        while b[-len(expected):] != expected :
+        while b[-len(expected) :] != expected:
             if self._timeout is not None and time.time() - s_time >= self._timeout:
                 break
             b += self.read(1)
         logger.debug(f"Reading {b}")
         return b
-    
+
     def readline(self) -> bytes:
         line = self.read_until(b"\n")
         logger.debug(f"Reading line {line}")
@@ -76,7 +77,7 @@ class LinuxBaseVirtualSerial:
         lines = self._reader.readlines()
         logger.debug(f"Reading lines {lines}")
         return lines
-    
+
     def read_all(self) -> bytes:
         response = b""
         rlist, _, _ = select([self._reader], [], [], 0)
@@ -97,7 +98,7 @@ class LinuxBaseVirtualSerial:
     @property
     def timeout(self) -> int:
         return self._timeout
-    
+
     @timeout.setter
-    def timeout(self, timeout:int) -> None:
+    def timeout(self, timeout: int) -> None:
         self._timeout = timeout
